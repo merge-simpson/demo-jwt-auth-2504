@@ -1,2 +1,42 @@
 spring:
   application.name: demo-jwt-auth-2504
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: ${BOARD_POSTGRESQL_URL}
+    username: ${BOARD_POSTGRESQL_USERNAME}
+    password: ${BOARD_POSTGRESQL_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: none
+
+  flyway:
+    baseline-on-migrate: true
+    locations:
+      - db/migration/v1
+  data:
+    redis:
+      # cluster mode
+#      cluster:
+#        nodes:
+#          - valkey-node-0:6379
+#          - valkey-node-1:6379
+#          - valkey-node-2:6379
+#      password: root
+#      timeout: 2000  # 연결 타임아웃 (ms)
+#      lettuce:
+#        pool:
+#          enabled: true
+#          max-active: 10 # 최대 커넥션 수
+#          min-idle: 1    # 최소 유휴 커넥션 수
+#          max-idle: 5    # 최대 유휴 커넥션 수
+      # standalone (valkey master info)
+      host: ${VALKEY_HOST}
+      port: ${VALKEY_PORT}
+      password: ${VALKEY_PASSWORD}
+      timeout: 2000
+      lettuce:
+        pool:
+          max-active: 32
+          max-idle: 32
+          min-idle: 16
+          enabled: true
