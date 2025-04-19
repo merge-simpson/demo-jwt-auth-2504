@@ -1,0 +1,115 @@
+version: '3'
+
+services:
+  # DB (Postgres)
+  demo_postgres14:
+    image: postgres:14
+    environment:
+      TZ: Asia/Seoul
+      POSTGRES_DB: demo
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+      POSTGRES_INITDB_ARGS: '--encoding=UTF-8 --lc-collate=C --lc-ctype=C'
+    ports:
+      - 5433:5432
+    restart: on-failure
+    volumes:
+      - sticky_volume_demo_postgres14:/var/lib/postgresql/data
+      - ./db/initdb.d:/docker-entrypoint-initdb.d:ro
+
+  # Redis Alternative (Valkey)
+  demo-valkey-primary:
+    image: bitnami/valkey:7.2
+    ports:
+      - '6378:6379'
+    environment:
+      - VALKEY_REPLICATION_MODE=primary
+      - VALKEY_PASSWORD=root
+      - VALKEY_DISABLE_COMMANDS=FLUSHDB,FLUSHALL
+    volumes:
+      - 'sticky_volume_demo-valkey-primary:/bitnami/valkey/data'
+
+  # Redis Alternative (Valkey)
+  demo-valkey-secondary:
+    image: bitnami/valkey:7.2
+    ports:
+      - '6379:6379'
+    depends_on:
+      - demo-valkey-primary
+    environment:
+      - VALKEY_REPLICATION_MODE=replica
+      - VALKEY_PRIMARY_HOST=demo-valkey-primary
+      - VALKEY_PRIMARY_PORT_NUMBER=6379
+      - VALKEY_PRIMARY_PASSWORD=root
+      - VALKEY_PASSWORD=root
+      - VALKEY_DISABLE_COMMANDS=FLUSHDB,FLUSHALL
+
+volumes:
+  sticky_volume_demo_postgres14:
+  sticky_volume_demo-valkey-primary:
+    driver: local
+
+### Cluster (not tested) # 매번 옮기기 귀찮고 싫어서 복붙해 둠.
+#version: '3'
+#
+#services:
+#  demo_postgres14:
+#    image: postgres:14
+#    environment:
+#      TZ: Asia/Seoul
+#      POSTGRES_DB: demo
+#      POSTGRES_USER: root
+#      POSTGRES_PASSWORD: root
+#      POSTGRES_INITDB_ARGS: '--encoding=UTF-8 --lc-collate=C --lc-ctype=C'
+#    ports:
+#      - 5433:5432
+#    restart: on-failure
+#    volumes:
+#      - sticky_volume_demo_postgres14:/var/lib/postgresql/data
+#      - ./db/initdb.d:/docker-entrypoint-initdb.d:ro
+#
+#  valkey-node-0:
+#    image: bitnami/valkey-cluster:8.1
+#    container_name: valkey-node-0
+#    environment:
+#      - VALKEY_PASSWORD=root
+#      - VALKEY_NODES=valkey-node-0 valkey-node-1 valkey-node-2
+#    volumes:
+#      - valkey-cluster_data-0:/bitnami/valkey/data
+#    networks:
+#      - valkey-cluster
+#
+#  valkey-node-1:
+#    image: bitnami/valkey-cluster:8.1
+#    container_name: valkey-node-1
+#    environment:
+#      - VALKEY_PASSWORD=root
+#      - VALKEY_NODES=valkey-node-0 valkey-node-1 valkey-node-2
+#    volumes:
+#      - valkey-cluster_data-1:/bitnami/valkey/data
+#    networks:
+#      - valkey-cluster
+#
+#  valkey-node-2:
+#    image: bitnami/valkey-cluster:8.1
+#    container_name: valkey-node-2
+#    environment:
+#      - VALKEY_PASSWORD=root
+#      - VALKEY_NODES=valkey-node-0 valkey-node-1 valkey-node-2
+#    volumes:
+#      - valkey-cluster_data-2:/bitnami/valkey/data
+#    networks:
+#      - valkey-cluster
+#
+#volumes:
+#  sticky_volume_demo_postgres14:
+#  valkey-cluster_data-0:
+#    driver: local
+#  valkey-cluster_data-1:
+#    driver: local
+#  valkey-cluster_data-2:
+#    driver: local
+#
+#networks:
+#  valkey-cluster:
+#    driver: bridge
