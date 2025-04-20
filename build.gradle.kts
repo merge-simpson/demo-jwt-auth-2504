@@ -49,6 +49,9 @@ dependencies {
 
     implementation("com.github.merge-simpson:letsdev-log-level-api:0.1.2-rc2")
 
+    // password encoder
+    implementation("org.springframework.security:spring-security-crypto")
+
     // database
     runtimeOnly("org.postgresql:postgresql")
     implementation("org.flywaydb:flyway-database-postgresql")
